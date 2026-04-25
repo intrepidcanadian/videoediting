@@ -1,0 +1,301 @@
+/* ─────────────────────────────────────────────────────────────────
+   Cutting Room — editorial-cinematic visual system
+   Layered on top of Tailwind. CSS variables define the palette,
+   helper classes provide non-Tailwind primitives (eyebrow, chip,
+   crop marks, film grain, gate, reel). Tailwind classes still work.
+   ───────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Theatre palette */
+  --ink:        #0A0908;
+  --ink-2:      #14110F;
+  --ink-3:      #1C1815;
+  --ink-4:      #2A2520;
+  --rule:       #2E2823;
+  --rule-soft:  #211D19;
+  --bone:       #F4EFE6;
+  --bone-2:     #E5DFD3;
+  --dim:        #8A8278;
+  --dim-2:      #5C5750;
+  --dim-3:      #3D3A36;
+
+  /* Single accent — used sparingly */
+  --lamp:       #E8B85C;
+  --lamp-soft:  #F2D496;
+  --lamp-deep:  #B88A3E;
+  --oxide:      #A33B2A;
+  --teal:       #4F7A78;
+  --emerald:    #6E8E5C;
+  --blue:       #6F8DAB;
+
+  /* Type */
+  --serif:  'Instrument Serif', 'Tiempos', Georgia, serif;
+  --sans:   'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:   'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+
+/* Body — theatre black + bone text + Geist sans */
+body {
+  background: var(--ink) !important;
+  color: var(--bone) !important;
+  font-family: var(--sans);
+  font-feature-settings: "ss01", "cv11", "cv02";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle film grain overlay — fixed across viewport */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
+}
+
+/* Above-grain content */
+body > * { position: relative; z-index: 2; }
+
+/* Selection + scrollbars */
+::selection { background: var(--lamp); color: var(--ink); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 8px; border: 2px solid var(--ink); }
+::-webkit-scrollbar-thumb:hover { background: var(--dim-3); }
+
+/* ───── Type primitives ───── */
+
+.cr-serif { font-family: var(--serif); font-weight: 400; letter-spacing: -0.01em; }
+.cr-serif-italic { font-family: var(--serif); font-style: italic; font-weight: 400; }
+.cr-mono { font-family: var(--mono); font-feature-settings: "ss01", "zero"; }
+.cr-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.cr-dim   { color: var(--dim); }
+.cr-dim-2 { color: var(--dim-2); }
+.cr-bone  { color: var(--bone); }
+.cr-lamp  { color: var(--lamp); }
+.cr-oxide { color: var(--oxide); }
+
+/* Editorial display heading — for run titles, view headlines */
+.cr-h1 { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 56px; line-height: 1.0; letter-spacing: -0.02em; }
+.cr-h2 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 1.05; letter-spacing: -0.015em; }
+.cr-h3 { font-family: var(--serif); font-weight: 400; font-size: 22px; line-height: 1.15; }
+
+/* ───── Chips ───── */
+
+.cr-chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--ink-2);
+  white-space: nowrap;
+}
+.cr-chip-amber   { color: var(--lamp);     border-color: rgba(232, 184, 92, 0.4); background: rgba(232, 184, 92, 0.06); }
+.cr-chip-emerald { color: var(--emerald);  border-color: rgba(110, 142, 92, 0.4); background: rgba(110, 142, 92, 0.06); }
+.cr-chip-oxide   { color: var(--oxide);    border-color: rgba(163, 59, 42, 0.4);  background: rgba(163, 59, 42, 0.06); }
+.cr-chip-blue    { color: var(--blue);     border-color: rgba(111, 141, 171, 0.4); background: rgba(111, 141, 171, 0.06); }
+
+/* ───── Buttons (cinematic CTAs — opt-in via .cr-btn-*) ───── */
+
+.cr-btn-accent {
+  background: var(--lamp);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  padding: 8px 14px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.cr-btn-accent:hover { background: var(--lamp-soft); }
+
+.cr-btn-ghost {
+  background: transparent;
+  color: var(--bone-2);
+  border: 1px solid var(--rule);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 120ms, background 120ms;
+}
+.cr-btn-ghost:hover { border-color: var(--dim-2); background: var(--ink-3); }
+
+/* ───── Crop marks (lamp-amber registration corners on approval frames) ───── */
+
+.cr-crop {
+  position: relative;
+}
+.cr-crop::before, .cr-crop::after,
+.cr-crop > .cr-crop-mark-tr, .cr-crop > .cr-crop-mark-bl {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+}
+.cr-crop::before  { top: -1px;    left: -1px;    border-top: 1px solid var(--lamp);    border-left: 1px solid var(--lamp); }
+.cr-crop::after   { bottom: -1px; right: -1px;   border-bottom: 1px solid var(--lamp); border-right: 1px solid var(--lamp); }
+.cr-crop > .cr-crop-mark-tr { top: -1px;    right: -1px;   border-top: 1px solid var(--lamp);    border-right: 1px solid var(--lamp); }
+.cr-crop > .cr-crop-mark-bl { bottom: -1px; left: -1px;    border-bottom: 1px solid var(--lamp); border-left: 1px solid var(--lamp); }
+
+/* ───── Approval gate banner ───── */
+
+.cr-gate {
+  border: 1px solid var(--rule);
+  background: var(--ink-2);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  border-radius: 2px;
+}
+.cr-gate::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--lamp);
+}
+
+/* ───── Phase progress strip ───── */
+
+.cr-phase-strip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+}
+.cr-phase-cell {
+  flex: 1;
+  height: 4px;
+  background: var(--rule);
+  position: relative;
+}
+.cr-phase-cell.done   { background: var(--bone); }
+.cr-phase-cell.active { background: var(--lamp); }
+.cr-phase-cell.active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  background-size: 200% 100%;
+  animation: cr-shimmer 1.6s linear infinite;
+}
+@keyframes cr-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ───── Storyboard reel (horizontal) ───── */
+
+.cr-reel {
+  display: flex;
+  gap: 1px;
+  background: var(--rule);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.cr-reel::-webkit-scrollbar { height: 6px; }
+.cr-reel-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  background: var(--ink-2);
+}
+
+/* ───── Cinematic placeholder thumbnails ───── */
+
+.cr-thumb {
+  position: relative;
+  background: linear-gradient(135deg, #1a1410 0%, #2a1f17 50%, #0e0a08 100%);
+  overflow: hidden;
+  border-radius: 1px;
+}
+.cr-thumb::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none;
+}
+
+/* Scene tints */
+.cr-thumb-noir   { background: linear-gradient(135deg, #0d1419 0%, #1a2a36 50%, #050a0e 100%); }
+.cr-thumb-dawn   { background: linear-gradient(160deg, #2a1810 0%, #5e3a1f 40%, #d49050 75%, #f4d09a 100%); }
+.cr-thumb-amber  { background: linear-gradient(135deg, #2a1a08 0%, #6b3e16 45%, #b87526 80%, #2a1a08 100%); }
+.cr-thumb-rain   { background: linear-gradient(180deg, #131a20 0%, #1d2a36 60%, #0a1014 100%); }
+.cr-thumb-fog    { background: linear-gradient(180deg, #2c2a26 0%, #4a4742 40%, #6c6862 80%, #353230 100%); }
+.cr-thumb-blood  { background: linear-gradient(135deg, #1a0a0a 0%, #4a1418 50%, #7a1c20 80%, #1a0a0a 100%); }
+.cr-thumb-jungle { background: linear-gradient(160deg, #0a1410 0%, #1c3a28 50%, #3a5a3a 80%, #0a1410 100%); }
+.cr-thumb-cool   { background: linear-gradient(135deg, #0a141c 0%, #1c2c44 50%, #4a6a8c 100%); }
+
+/* ───── Override Tailwind backgrounds to use the theatre palette ───── */
+
+/* These translate the most-used Tailwind dark surfaces into the new tokens
+ * so the wider app gets the cinematic feel without rewriting markup. */
+.bg-zinc-950 { background-color: var(--ink) !important; }
+.bg-zinc-900 { background-color: var(--ink-2) !important; }
+.bg-zinc-900\/50, .bg-zinc-900\/40, .bg-zinc-900\/30 { background-color: rgba(20, 17, 15, 0.55) !important; }
+.bg-zinc-800 { background-color: var(--ink-3) !important; }
+.border-zinc-900 { border-color: var(--rule) !important; }
+.border-zinc-800 { border-color: var(--rule) !important; }
+.border-zinc-700 { border-color: var(--dim-3) !important; }
+.text-zinc-100, .text-white { color: var(--bone) !important; }
+.text-zinc-200 { color: var(--bone-2) !important; }
+.text-zinc-300 { color: var(--bone-2) !important; }
+.text-zinc-400 { color: var(--dim) !important; }
+.text-zinc-500 { color: var(--dim-2) !important; }
+.text-zinc-600 { color: var(--dim-3) !important; }
+
+/* Re-tone amber to lamp amber (single-accent rule) */
+.text-amber-300, .text-amber-400, .text-amber-500 { color: var(--lamp) !important; }
+.hover\:text-amber-200:hover, .hover\:text-amber-300:hover, .hover\:text-amber-400:hover { color: var(--lamp-soft) !important; }
+.bg-amber-400, .bg-amber-500 { background-color: var(--lamp) !important; color: var(--ink) !important; }
+.hover\:bg-amber-300:hover, .hover\:bg-amber-400:hover { background-color: var(--lamp-soft) !important; }
+.border-amber-500, .border-amber-400 { border-color: var(--lamp) !important; }
+.focus\:border-amber-500:focus { border-color: var(--lamp) !important; }
+
+/* Brand wordmark dot — keep it lamp-amber */
+.cr-brand-dot { background: var(--lamp) !important; }
+
+/* Mono font on mono-flagged text (matches Tailwind's font-mono) */
+.font-mono { font-family: var(--mono) !important; font-feature-settings: "ss01", "zero"; }
+
+/* Subtle card border treatment — bring Tailwind cards in line */
+.rounded, .rounded-md, .rounded-lg { border-radius: 2px !important; }
+
+/* Inputs/textareas/selects — match the design (mono font, dark bg, lamp focus) */
+input[type="text"], input[type="number"], input[type="url"],
+input[type="email"], input[type="password"], textarea, select {
+  font-family: var(--mono);
+}
+
+/* ───── Animations ───── */
+
+@keyframes cr-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cr-fade-up { animation: cr-fade-up 380ms cubic-bezier(0.2, 0, 0, 1) both; }

@@ -256,8 +256,11 @@ function showView(name, runId = null) {
   if (dirToggle) dirToggle.classList.toggle('hidden', name !== 'run');
   if (name !== 'run') document.getElementById('director-drawer')?.classList.add('hidden');
   document.querySelectorAll('.nav-btn').forEach(b => {
-    b.classList.toggle('text-white', b.dataset.view === name);
-    b.classList.toggle('text-zinc-400', b.dataset.view !== name);
+    const active = b.dataset.view === name;
+    b.classList.toggle('text-white', active);
+    b.classList.toggle('text-zinc-400', !active);
+    // Lamp-amber underline on active nav (Cutting Room style)
+    b.style.borderBottomColor = active ? 'var(--lamp)' : 'transparent';
   });
 
   const drawer = document.getElementById('log-drawer');
@@ -2169,7 +2172,12 @@ function renderRun(st) {
   document.getElementById('run-logline').textContent = story.logline || st.concept?.slice(0, 140) || '';
   const chip = document.getElementById('run-status-chip');
   chip.textContent = st.status;
-  chip.className = 'px-2 py-1 rounded font-mono ' + statusBadge(st.status);
+  // Map run status → cr-chip tone (single accent rule: amber for active, emerald for done, oxide for failed)
+  const tone = (st.status === 'done' || st.status === 'ready') ? 'cr-chip-emerald'
+             : (st.status === 'failed') ? 'cr-chip-oxide'
+             : (st.status?.includes?.('partial') || st.status?.includes?.('generating')) ? 'cr-chip-amber'
+             : '';
+  chip.className = `cr-chip ${tone}`;
 
   // Phase bar + progress banner (banner only visible while a phase is active)
   renderPhaseBar(st);
@@ -2354,19 +2362,40 @@ function renderPhaseBar(st) {
   const allAssetsHandled = (st.assets || []).every(a => ['uploaded','generated','skipped'].includes(a.status));
   const hasAssetsPhase = st.asset_discovery_status === 'ready';
   const phases = [
-    { key: 'storyboard', label: '1. storyboard', done: !!st.story },
-    ...(hasAssetsPhase ? [{ key: 'assets', label: '1.5 assets', done: allAssetsHandled }] : []),
-    { key: 'keyframes',  label: '2. keyframes',  done: (st.keyframes || []).length > 0 && (st.keyframes || []).every(k => k.status === 'ready') },
-    { key: 'shots',      label: '3. shots',      done: (st.shots || []).length > 0 && (st.shots || []).every(s => s.status === 'ready') },
-    { key: 'review',     label: '3.5 review',    done: !!(st.cut_plan && st.cut_plan.approved) },
-    { key: 'stitch',     label: '4. trailer',    done: !!st.final },
+    { key: 'storyboard', num: '01', label: 'Storyboard', done: !!st.story,
+      generating: st.storyboard_status === 'generating' },
+    ...(hasAssetsPhase ? [{ key: 'assets', num: '01·5', label: 'Assets', done: allAssetsHandled,
+      generating: (st.assets || []).some(a => a.status === 'generating') }] : []),
+    { key: 'keyframes',  num: '02', label: 'Keyframes',
+      done: (st.keyframes || []).length > 0 && (st.keyframes || []).every(k => k.status === 'ready'),
+      generating: (st.keyframes || []).some(k => k.status === 'generating') },
+    { key: 'shots',      num: '03', label: 'Shots',
+      done: (st.shots || []).length > 0 && (st.shots || []).every(s => s.status === 'ready'),
+      generating: (st.shots || []).some(s => s.status === 'generating') },
+    { key: 'review',     num: '03·5', label: 'Cut plan', done: !!(st.cut_plan && st.cut_plan.approved) },
+    { key: 'stitch',     num: '04', label: 'Trailer', done: !!st.final },
   ];
-  document.getElementById('phase-bar').innerHTML = phases.map((p, i) => {
-    const cls = p.done
-      ? 'bg-emerald-900/50 text-emerald-300 border-emerald-800'
-      : 'bg-zinc-900 text-zinc-400 border-zinc-800';
-    return `<div class="px-2 py-1 rounded border ${cls}">${p.done ? '✓ ' : ''}${p.label}</div>${i < phases.length - 1 ? '<span class="text-zinc-700">→</span>' : ''}`;
-  }).join('');
+  // First non-done phase is the active one
+  const activeIdx = phases.findIndex(p => !p.done);
+  phases.forEach((p, i) => { p.active = i === activeIdx; });
+
+  const bar = document.getElementById('phase-bar');
+  bar.className = 'mb-6';
+  bar.innerHTML = `
+    <div class="cr-phase-strip mb-2.5">
+      ${phases.map(p => `<div class="cr-phase-cell ${p.done ? 'done' : ''} ${p.active || p.generating ? 'active' : ''}"></div>`).join('')}
+    </div>
+    <div class="flex">
+      ${phases.map(p => {
+        const numColor = p.active ? 'var(--lamp)' : p.done ? 'var(--bone-2)' : 'var(--dim-2)';
+        const labelColor = p.active ? 'var(--bone)' : p.done ? 'var(--dim-2)' : 'var(--dim-3)';
+        const marker = p.done ? '✓' : p.active ? '›' : '·';
+        return `<div style="flex: 1; padding-right: 8px;">
+          <div class="cr-mono" style="font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: ${numColor}; margin-bottom: 2px;">${marker} ${p.num}</div>
+          <div class="cr-serif" style="font-size: 14px; color: ${labelColor}; letter-spacing: -0.01em;">${p.label}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 // ─── Phase 1: storyboard ─────────────────────────────────────────────────
