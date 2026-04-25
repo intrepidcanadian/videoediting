@@ -1444,34 +1444,36 @@ function renderDirectorMessages(messages) {
   box.innerHTML = '';
   if (!messages.length) {
     box.innerHTML = `
-      <div class="text-zinc-500 text-[11px] p-3 bg-zinc-900/40 border border-zinc-800 rounded">
-        Talk to Claude about this run. Examples:
-        <ul class="list-disc ml-4 mt-1 space-y-0.5 text-zinc-400">
-          <li>"shot 3 has face morph — regen it"</li>
-          <li>"swap shot 5 to take 2"</li>
-          <li>"make the detective's coat burgundy in shot 1"</li>
-          <li>"rewrite the VO with more dread"</li>
-          <li>"snap the cut to the music beats"</li>
-          <li>"re-stitch the trailer"</li>
-        </ul>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--dim); padding: 14px; background: var(--ink-2); border: 1px solid var(--rule); border-radius: 2px;">
+        <div class="cr-eyebrow" style="margin-bottom: 8px;">Try saying</div>
+        <div class="cr-serif-italic" style="font-size: 13px; color: var(--bone-2); line-height: 1.7;">
+          "shot 3 has face morph — regen it"<br>
+          "swap shot 5 to take 2"<br>
+          "make the detective's coat burgundy"<br>
+          "rewrite the VO with more dread"<br>
+          "snap the cut to the music beats"
+        </div>
       </div>`;
     return;
   }
   for (const m of messages) {
     const wrap = document.createElement('div');
     const isUser = m.role === 'user';
-    wrap.className = isUser
-      ? 'bg-zinc-900 border border-zinc-800 rounded p-2 text-zinc-200 self-end max-w-[90%] ml-auto'
-      : 'bg-amber-950/20 border border-amber-900/50 rounded p-2 text-zinc-200 max-w-[95%]';
+    wrap.style.cssText = 'display: flex; flex-direction: column; gap: 4px;';
     const time = (m.ts || '').split('T')[1]?.slice(0, 8) || '';
+    const fontFamily = isUser ? 'var(--sans)' : 'var(--serif)';
+    const fontStyle = isUser ? 'normal' : 'italic';
+    const textColor = isUser ? 'var(--bone-2)' : 'var(--bone)';
+    const eyebrowColor = isUser ? 'var(--dim)' : 'var(--lamp)';
+    const speaker = isUser ? 'You' : 'Claude · sonnet 4.6';
     wrap.innerHTML = `
-      <div class="text-[9px] text-zinc-500 uppercase font-mono mb-1">${isUser ? 'you' : '🎬 director'}${time ? ` · ${time}` : ''}</div>
-      <div class="whitespace-pre-wrap">${escapeHtml(m.content || '')}</div>
+      <span class="cr-eyebrow" style="color: ${eyebrowColor};">${speaker}${time ? ` · ${time}` : ''}</span>
+      <div style="font-family: ${fontFamily}; font-style: ${fontStyle}; font-size: ${isUser ? '13px' : '14px'}; color: ${textColor}; line-height: 1.55; white-space: pre-wrap;">${escapeHtml(m.content || '')}</div>
       ${(m.tool_trace || []).length ? `
-        <details class="mt-2">
-          <summary class="text-[10px] text-amber-400 cursor-pointer">▸ ${m.tool_trace.length} tool action${m.tool_trace.length > 1 ? 's' : ''}</summary>
-          <div class="mt-1 space-y-1 text-[10px] text-zinc-500 font-mono pl-2 border-l border-amber-900/50">
-            ${m.tool_trace.map(t => `<div><span class="text-amber-300">${escapeHtml(t.tool)}</span>(${escapeHtml(JSON.stringify(t.input).slice(0, 80))}) ${t.result?.ok ? '✓' : '✗'} ${escapeHtml(t.result?.message || t.result?.error || '')}</div>`).join('')}
+        <details style="margin-top: 4px;">
+          <summary class="cr-mono" style="font-size: 10px; color: var(--lamp); cursor: pointer; letter-spacing: 0.04em;">▸ ${m.tool_trace.length} tool action${m.tool_trace.length > 1 ? 's' : ''}</summary>
+          <div style="margin-top: 4px; padding-left: 8px; border-left: 1px solid var(--rule); font-family: var(--mono); font-size: 10px; color: var(--dim); display: flex; flex-direction: column; gap: 4px;">
+            ${m.tool_trace.map(t => `<div><span style="color: var(--lamp);">${escapeHtml(t.tool)}</span>(${escapeHtml(JSON.stringify(t.input).slice(0, 80))}) ${t.result?.ok ? '✓' : '✗'} ${escapeHtml(t.result?.message || t.result?.error || '')}</div>`).join('')}
           </div>
         </details>
       ` : ''}`;
@@ -1496,12 +1498,12 @@ async function sendDirectorMessage() {
   // Optimistic render
   const box = document.getElementById('director-messages');
   const userMsg = document.createElement('div');
-  userMsg.className = 'bg-zinc-900 border border-zinc-800 rounded p-2 text-zinc-200 self-end max-w-[90%] ml-auto';
-  userMsg.innerHTML = `<div class="text-[9px] text-zinc-500 uppercase font-mono mb-1">you</div><div class="whitespace-pre-wrap">${escapeHtml(message)}</div>`;
+  userMsg.style.cssText = 'display: flex; flex-direction: column; gap: 4px;';
+  userMsg.innerHTML = `<span class="cr-eyebrow" style="color: var(--dim);">You</span><div style="font-family: var(--sans); font-size: 13px; color: var(--bone-2); line-height: 1.55; white-space: pre-wrap;">${escapeHtml(message)}</div>`;
   box.appendChild(userMsg);
   const thinking = document.createElement('div');
-  thinking.className = 'bg-amber-950/20 border border-amber-900/50 rounded p-2 text-zinc-400 text-xs max-w-[90%]';
-  thinking.innerHTML = '<span class="spin inline-block w-3 h-3 border border-zinc-600 border-t-amber-400 rounded-full mr-2"></span>thinking…';
+  thinking.style.cssText = 'display: flex; flex-direction: column; gap: 4px;';
+  thinking.innerHTML = `<span class="cr-eyebrow" style="color: var(--lamp);">Claude · sonnet 4.6</span><div style="font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--dim);"><span class="spin inline-block w-3 h-3 border border-zinc-600 rounded-full" style="border-top-color: var(--lamp); margin-right: 6px;"></span>thinking…</div>`;
   box.appendChild(thinking);
   box.scrollTop = box.scrollHeight;
   input.value = '';
@@ -2463,13 +2465,61 @@ function renderStoryboard(st) {
 
   const approved = (st.keyframes || []).some(k => k.status !== 'pending');
 
+  // Build the cinematic reel preview HTML (horizontal scrolling cards)
+  const totalDuration = (st.story.shots || []).reduce((s, sh) => s + (sh.duration_s || 5), 0);
+  const reelHtml = (st.story.shots || []).length ? `
+    <div class="mb-2 flex items-baseline justify-between">
+      <span class="cr-eyebrow">The reel</span>
+      <span class="cr-mono" style="font-size: 10px; letter-spacing: 0.1em; color: var(--dim-2);">
+        ← scroll · ${(st.story.shots || []).length} shots · ${totalDuration}s total
+      </span>
+    </div>
+    <div class="cr-reel cr-fade-up" style="border: 1px solid var(--rule); margin-bottom: 14px;">
+      ${(st.story.shots || []).map((shot, i) => {
+        const tints = ['noir','dawn','amber','rain','fog','blood','jungle','cool'];
+        const tint = tints[i % tints.length];
+        const kf = (st.keyframes || [])[i];
+        const hasKf = kf && kf.status === 'ready' && kf.path;
+        const kfSrc = hasKf ? assetUrl(state.currentRunId, kf.path, kf.updated_at) : '';
+        const featured = ((shot.featured_characters||[]).length || (shot.featured_locations||[]).length || (shot.featured_props||[]).length);
+        return `
+          <div class="cr-reel-item" style="width: 240px; padding: 12px; border-right: 1px solid var(--rule);">
+            <div class="flex items-center justify-between" style="margin-bottom: 8px;">
+              <span class="cr-mono" style="font-size: 11px; color: var(--lamp); letter-spacing: 0.1em;">SHOT ${String(i+1).padStart(2,'0')}</span>
+              <span class="cr-mono" style="font-size: 10px; color: var(--dim);">${shot.duration_s || 5}s</span>
+            </div>
+            <div class="cr-thumb cr-thumb-${tint}" style="aspect-ratio: 21/9; position: relative;">
+              ${hasKf ? `<img src="${kfSrc}" style="width:100%; height:100%; object-fit:cover; position:absolute; inset:0;" alt="kf ${i+1}">` : ''}
+              <div style="position: absolute; top: 8px; left: 10px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--bone); text-shadow: 0 1px 2px rgba(0,0,0,0.6); z-index: 2;">
+                ${hasKf ? 'KF' : 'SH'} ${String(i+1).padStart(2,'0')}
+              </div>
+            </div>
+            <div class="cr-serif-italic" style="font-size: 14px; color: var(--bone); margin-top: 10px; line-height: 1.35; min-height: 38px;">
+              ${escapeHtml(shot.beat || '')}
+            </div>
+            <div class="cr-mono" style="font-size: 10px; margin-top: 8px; line-height: 1.5; height: 50px; overflow: hidden; color: var(--dim);">
+              ${escapeHtml((shot.keyframe_prompt || '').slice(0, 110))}${(shot.keyframe_prompt || '').length > 110 ? '…' : ''}
+            </div>
+            <div class="flex items-center" style="gap: 6px; margin-top: 10px;">
+              <button data-reel-jump="${i}" class="cr-mono" style="background: transparent; border: 0; padding: 0; color: var(--dim); font-size: 11px; cursor: pointer; letter-spacing: 0.04em;" onmouseover="this.style.color='var(--lamp)'" onmouseout="this.style.color='var(--dim)'">edit ↓</button>
+              <span style="color: var(--dim-3);">·</span>
+              ${featured ? `<span class="cr-chip cr-chip-amber" style="font-size: 9px; padding: 2px 6px;">featured</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  ` : '';
+
   el.innerHTML = `
+    <div class="mb-1"><span class="cr-eyebrow">Phase 01 · Claude</span></div>
     <div class="flex items-baseline justify-between mb-3">
-      <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-400">1. Storyboard</h3>
-      <div class="flex gap-2 text-xs">
-        <button id="btn-regen-story" class="px-2 py-1 rounded hover:bg-zinc-900 text-zinc-400 hover:text-white">↻ regenerate all</button>
+      <h2 class="cr-h3 cr-serif" style="font-size: 22px;">The storyboard.</h2>
+      <div class="flex gap-3 text-xs">
+        <button id="btn-regen-story" class="cr-mono" style="background: transparent; border: 0; color: var(--dim); cursor: pointer; font-size: 11px; letter-spacing: 0.04em;" onmouseover="this.style.color='var(--lamp)'" onmouseout="this.style.color='var(--dim)'">↻ regenerate all</button>
       </div>
     </div>
+    ${reelHtml}
 
     ${st.rip_mode ? `
       <details class="mb-3 bg-sky-950/30 border border-sky-900/50 rounded text-xs">
@@ -2610,6 +2660,20 @@ function renderStoryboard(st) {
       });
     });
     shotsEditor.appendChild(row);
+  });
+
+  // Reel cards "edit ↓" jumps to the matching editor row below
+  el.querySelectorAll('[data-reel-jump]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.reelJump, 10);
+      const target = shotsEditor.children[idx];
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.style.transition = 'box-shadow 200ms';
+        target.style.boxShadow = '0 0 0 1px var(--lamp), 0 0 24px -8px rgba(232,184,92,0.6)';
+        setTimeout(() => { target.style.boxShadow = ''; }, 1400);
+      }
+    });
   });
 
   document.getElementById('btn-save-story').onclick = async () => {
@@ -3471,6 +3535,62 @@ function renderShots(st) {
   }
 }
 
+function openCompareOverlay(st, shot, shotIdx) {
+  const variants = (shot.variants || []).filter(v => v.status === 'ready' && v.path);
+  if (variants.length < 2) { toast('Need at least 2 ready takes to compare'); return; }
+  const primaryIdx = shot.primary_variant ?? 0;
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4';
+  overlay.innerHTML = `
+    <div class="w-full max-w-6xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-semibold text-zinc-300">Shot ${shotIdx + 1} — compare ${variants.length} takes</h3>
+        <div class="flex gap-3 items-center">
+          <button id="cmp-sync-play" class="text-xs px-3 py-1 rounded border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-300">play all</button>
+          <button id="cmp-close" class="text-xs px-3 py-1 rounded border border-zinc-700 hover:border-red-500 text-zinc-400 hover:text-red-300">close</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-${Math.min(variants.length, 4)} gap-3">
+        ${variants.map((v, vi) => {
+          const origIdx = (shot.variants || []).indexOf(v);
+          const isPrimary = origIdx === primaryIdx;
+          const src = assetUrl(state.currentRunId, v.path, v.updated_at);
+          return `
+            <div class="flex flex-col gap-2">
+              <div class="relative aspect-video bg-black rounded overflow-hidden border ${isPrimary ? 'border-amber-500' : 'border-zinc-800'}">
+                <video src="${src}" class="w-full h-full object-contain cmp-video" muted loop playsinline controls preload="metadata"></video>
+                ${isPrimary ? '<div class="absolute top-1 right-1 text-[9px] px-1.5 py-0.5 rounded bg-amber-500/80 text-black font-mono">primary</div>' : ''}
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] text-zinc-400 font-mono">take ${origIdx + 1}</span>
+                ${!isPrimary ? `<button data-pick-variant="${origIdx}" class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-medium">pick this</button>` : '<span class="text-[10px] text-amber-400">current pick</span>'}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#cmp-close').onclick = () => overlay.remove();
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#cmp-sync-play').onclick = () => {
+    overlay.querySelectorAll('.cmp-video').forEach(v => { v.currentTime = 0; v.play(); });
+  };
+  overlay.querySelectorAll('[data-pick-variant]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const vi = parseInt(btn.dataset.pickVariant, 10);
+      try {
+        await api.setPrimaryVariant(state.currentRunId, shotIdx, vi);
+        toast(`Shot ${shotIdx + 1}: take ${vi + 1} picked`);
+        overlay.remove();
+        await refreshRun();
+      } catch (err) { toast('Pick failed: ' + (err.message || err)); }
+    });
+  });
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', esc); }
+  });
+}
+
 function shotCard(st, shot, i) {
   const card = document.createElement('div');
   card.className = 'bg-zinc-900/50 border border-zinc-800 rounded overflow-hidden text-xs';
@@ -3565,7 +3685,7 @@ function shotCard(st, shot, i) {
                 <button data-detach-vref-slot="${slot}" class="text-[11px] text-zinc-500 hover:text-red-400" title="remove slot ${slot+1}">✕</button>
               </div>`;
           }
-          if (slot < vrefCount) {
+          if (slot <= vrefCount && vrefCount < 3) {
             return `
               <label class="flex items-center gap-2 text-[11px] text-zinc-500 hover:text-sky-300 cursor-pointer">
                 <span class="px-2 py-0.5 rounded border border-dashed border-zinc-700 hover:border-sky-700 text-[10px] font-mono">@video${slot+1}</span>
@@ -3592,10 +3712,11 @@ function shotCard(st, shot, i) {
         </div>
       ` : ''}
 
-      <div class="grid grid-cols-3 gap-1 mt-2">
+      <div class="grid grid-cols-${showVariants ? '4' : '3'} gap-1 mt-2">
         <button data-action="regen" class="text-[11px] px-2 py-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800">↻ regen</button>
         <button data-action="sweep" class="text-[11px] px-2 py-1 rounded hover:bg-fuchsia-900/40 hover:text-fuchsia-200 text-zinc-400 border border-zinc-800" title="Generate 3 distinct motion prompts + render them all — pick the winner">🧪 sweep</button>
         <button data-action="custom" class="text-[11px] px-2 py-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800">✎ custom</button>
+        ${showVariants ? `<button data-action="compare" class="text-[11px] px-2 py-1 rounded hover:bg-violet-900/40 hover:text-violet-200 text-zinc-400 border border-zinc-800" title="Side-by-side comparison of all takes">⊞ compare</button>` : ''}
       </div>
     </div>
   `;
@@ -3704,6 +3825,10 @@ function shotCard(st, shot, i) {
       navigator.clipboard.writeText(token).then(() => toast(`Copied ${token} — paste into any prompt`));
     });
   });
+  // Side-by-side compare overlay
+  card.querySelector('[data-action=compare]')?.addEventListener('click', () => {
+    openCompareOverlay(st, shot, i);
+  });
   // Legacy handlers (now unused — kept for safety)
   const _legacyDetach = card.querySelector('[data-action=detach-vref]');
   if (_legacyDetach) {
@@ -3794,17 +3919,64 @@ function renderReview(st) {
   const timeline = plan.timeline;
   const hasTimeline = timeline && timeline.entries && timeline.entries.length > 0;
 
-  el.innerHTML = `
-    <div class="flex items-baseline justify-between mb-3">
-      <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-400">3.5 Review & Cut Plan <span class="text-zinc-600 font-normal normal-case ml-2">Claude vision${hasTimeline ? ' · source-rhythm timeline' : ''}</span></h3>
-      <div class="flex gap-2 text-xs">
-        <button id="btn-redo-plan" class="px-2 py-1 rounded hover:bg-zinc-900 text-zinc-400 hover:text-white">↻ re-analyze</button>
-        <button id="btn-discard-plan" class="px-2 py-1 rounded hover:bg-zinc-900 text-zinc-600 hover:text-red-400">discard</button>
+  // Visual track-lane timeline — proportional clips (video) + waveform/beat ticks (music)
+  const totalSecs = hasTimeline ? timeline.total_duration : 0;
+  const beats = (st.music?.beats || []);
+  const visualTimelineHtml = hasTimeline ? `
+    <div class="card cr-fade-up" style="background: var(--ink-2); border: 1px solid var(--rule); border-radius: 2px; padding: 14px; margin-bottom: 14px;">
+      <div class="flex items-center justify-between" style="margin-bottom: 12px;">
+        <div class="flex items-center gap-3">
+          <span class="cr-eyebrow">Timeline</span>
+          <span class="cr-mono" style="font-size: 11px; color: var(--dim);">${totalSecs.toFixed(1)}s · ${timeline.entries.length} cuts · ⌀ ${(totalSecs/timeline.entries.length).toFixed(1)}s per cut</span>
+        </div>
+        ${beats.length ? `<span class="cr-chip cr-chip-emerald">${beats.length} beats</span>` : ''}
+      </div>
+      <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0; font-family: var(--mono); font-size: 10px;">
+        <div style="color: var(--dim); border-right: 1px solid var(--rule); padding: 6px 8px; letter-spacing: 0.08em; text-transform: uppercase;">Video</div>
+        <div style="display: flex; height: 56px; border-bottom: 1px solid var(--rule-soft); position: relative;">
+          ${timeline.entries.map((entry, i) => {
+            const len = (entry.cut_out - entry.cut_in) || 0;
+            const w = totalSecs > 0 ? (len / totalSecs * 100) : 0;
+            const tints = ['noir','dawn','amber','rain','fog','blood','jungle','cool'];
+            const tint = tints[(entry.shot_idx ?? i) % tints.length];
+            return `<div data-tl-slice="${i}" class="cr-thumb cr-thumb-${tint}" style="flex-shrink: 0; width: ${w}%; border-right: 1px solid var(--ink); display: flex; align-items: flex-end; padding: 4px 6px; font-size: 9px; color: var(--bone); cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,0.6);" title="Slice ${i+1} · shot ${(entry.shot_idx ?? 0)+1} · take ${(entry.variant_idx ?? 0)+1} · ${len.toFixed(2)}s">S${(entry.shot_idx ?? 0)+1}·T${(entry.variant_idx ?? 0)+1}</div>`;
+          }).join('')}
+        </div>
+        <div style="color: var(--dim); border-right: 1px solid var(--rule); padding: 6px 8px; letter-spacing: 0.08em; text-transform: uppercase;">Music</div>
+        <div style="height: 44px; background: var(--ink-3); position: relative; overflow: hidden; border-bottom: 1px solid var(--rule-soft);">
+          ${beats.slice(0, 200).map((b, bi) => {
+            const left = totalSecs > 0 ? (b / totalSecs * 100) : 0;
+            const strong = bi % 4 === 0;
+            return `<div style="position: absolute; top: 0; bottom: 0; left: ${left}%; width: ${strong ? 2 : 1}px; background: rgba(232,184,92,${strong ? 0.9 : 0.4});"></div>`;
+          }).join('')}
+          <div style="display: flex; align-items: center; gap: 1px; height: 100%; padding: 0 6px;">
+            ${Array.from({length: 80}).map((_, wi) => {
+              const e = Math.abs(Math.sin(wi * 0.4) + Math.sin(wi * 0.13) * 0.6 + (wi > 30 && wi < 60 ? 0.4 : 0));
+              return `<div style="width: 2px; background: var(--teal); opacity: 0.7; border-radius: 1px; height: ${20 + e * 30}%;"></div>`;
+            }).join('')}
+          </div>
+        </div>
       </div>
     </div>
-    <div class="mb-4 bg-zinc-900/40 border border-zinc-800 rounded p-3 text-xs text-zinc-300">
-      <div class="text-[10px] text-zinc-500 uppercase mb-1">Overall notes</div>
-      <div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(plan.overall_notes || '')}</div>
+  ` : '';
+
+  el.innerHTML = `
+    <div class="mb-1"><span class="cr-eyebrow">Phase 03·5 · Claude vision</span></div>
+    <div class="flex items-baseline justify-between mb-3">
+      <h2 class="cr-h3 cr-serif" style="font-size: 22px;">The cut plan.</h2>
+      <div class="flex gap-3 text-xs">
+        <button id="btn-redo-plan" class="cr-mono" style="background: transparent; border: 0; color: var(--dim); cursor: pointer; font-size: 11px;" onmouseover="this.style.color='var(--lamp)'" onmouseout="this.style.color='var(--dim)'">↻ re-analyze</button>
+        <button id="btn-discard-plan" class="cr-mono" style="background: transparent; border: 0; color: var(--dim-2); cursor: pointer; font-size: 11px;" onmouseover="this.style.color='var(--oxide)'" onmouseout="this.style.color='var(--dim-2)'">discard</button>
+      </div>
+    </div>
+    <p class="cr-serif" style="font-size: 17px; line-height: 1.5; color: var(--bone-2); max-width: 760px; margin-bottom: 18px;">
+      ${hasTimeline ? `${timeline.entries.length} slices, intercut from your takes — a reconstruction of the source trailer's cut rhythm.` : 'Claude watched every shot and decided where to cut.'}
+      <span class="cr-serif-italic" style="color: var(--dim);"> ${hasTimeline ? 'Drag a slice\'s edge to retime; click to swap takes.' : 'Approve when the trims feel right.'}</span>
+    </p>
+    ${visualTimelineHtml}
+    <div class="card" style="background: var(--ink-2); border: 1px solid var(--rule); border-radius: 2px; padding: 12px; margin-bottom: 14px;">
+      <div class="cr-eyebrow" style="margin-bottom: 6px;">Overall notes</div>
+      <div class="whitespace-pre-wrap" style="line-height: 1.6; color: var(--bone-2); font-size: 13px;">${escapeHtml(plan.overall_notes || '')}</div>
     </div>
     ${hasTimeline ? `
       <div class="mb-4 bg-fuchsia-950/20 border border-fuchsia-900/50 rounded p-3 text-xs">
@@ -3870,6 +4042,25 @@ function renderReview(st) {
       });
     });
   }
+
+  // Click a clip in the visual timeline → scroll its detailed editor row into view + highlight
+  el.querySelectorAll('[data-tl-slice]').forEach(clip => {
+    clip.addEventListener('click', () => {
+      const idx = parseInt(clip.dataset.tlSlice, 10);
+      const rowsEl = document.getElementById('timeline-rows');
+      const row = rowsEl?.children[idx];
+      if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.style.transition = 'box-shadow 200ms';
+        row.style.boxShadow = '0 0 0 1px var(--lamp)';
+        setTimeout(() => { row.style.boxShadow = ''; }, 1400);
+      }
+      // Highlight the clicked clip in the visual lane
+      el.querySelectorAll('[data-tl-slice]').forEach(c => c.style.outline = '');
+      clip.style.outline = '2px solid var(--lamp)';
+      clip.style.zIndex = '3';
+    });
+  });
 
   const grid = document.getElementById('cut-plan-grid');
   (plan.shots || []).forEach((sp, i) => {
@@ -4089,20 +4280,56 @@ function renderPolish(st) {
 
   const voMeta = (st.audio || {}).vo || null;
 
+  // Build a Cutting Room waveform: synthesize bars from beats array, accent at energy peaks
+  let waveformHtml = '';
+  if (music && music.analysis) {
+    const beats = music.analysis.beats || [];
+    const dur = music.analysis.duration || 1;
+    // Energy peaks: estimate from beat density (denser regions are likely louder)
+    const peakSeconds = beats.length > 12
+      ? [beats[Math.floor(beats.length * 0.25)], beats[Math.floor(beats.length * 0.5)], beats[Math.floor(beats.length * 0.75)], beats[beats.length - 4]].filter(Boolean)
+      : [];
+    const N_BARS = 80;
+    const bars = [];
+    for (let i = 0; i < N_BARS; i++) {
+      const t = (i / N_BARS) * dur;
+      const isPeak = peakSeconds.some(p => Math.abs(p - t) < dur / N_BARS * 1.5);
+      // Pseudo-energy: sinusoidal blend boosted near peaks
+      const e = Math.abs(Math.sin(i * 0.25) + Math.cos(i * 0.13)) * (isPeak ? 1.6 : 1);
+      const h = 15 + e * 25;
+      const color = isPeak ? 'var(--lamp)' : 'var(--teal)';
+      bars.push(`<div style="width: 2px; background: ${color}; opacity: 0.7; border-radius: 1px; height: ${h}%;"></div>`);
+    }
+    const fmt = (s) => {
+      const m = Math.floor(s / 60);
+      const sec = String(Math.floor(s % 60)).padStart(2, '0');
+      return `${m}:${sec}`;
+    };
+    waveformHtml = `
+      <div style="height: 56px; background: var(--ink); border: 1px solid var(--rule); padding: 8px 10px; position: relative; margin-bottom: 8px;">
+        <div style="display: flex; align-items: center; gap: 1px; height: 100%;">${bars.join('')}</div>
+        <span class="cr-mono" style="position: absolute; bottom: 4px; left: 10px; font-size: 9px; color: var(--dim-2);">0:00</span>
+        <span class="cr-mono" style="position: absolute; bottom: 4px; right: 10px; font-size: 9px; color: var(--dim-2);">${fmt(dur)}</span>
+      </div>`;
+  }
+
   el.innerHTML = `
+    <div class="mb-1"><span class="cr-eyebrow">Phase 03·6 · awaiting your move</span></div>
     <div class="flex items-baseline justify-between mb-3">
-      <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-400">3.6 Polish <span class="text-zinc-600 font-normal normal-case ml-2">music · VO · title card</span></h3>
+      <h2 class="cr-h3 cr-serif" style="font-size: 22px;">Polish.</h2>
+      <span class="cr-mono" style="font-size: 11px; color: var(--dim-2);">music · VO · title card</span>
     </div>
     <div class="grid grid-cols-3 gap-3">
       <!-- Music card -->
       <div class="bg-zinc-900/40 border border-zinc-800 rounded p-3 text-xs">
         <div class="flex items-baseline justify-between mb-2">
-          <div class="font-semibold text-zinc-200">🎵 Music bed</div>
+          <div class="cr-serif" style="font-size: 17px; color: var(--bone);">Music bed</div>
           ${music ? `<button id="btn-detach-music" class="text-[11px] text-zinc-500 hover:text-red-400">✕ remove</button>` : ''}
         </div>
         ${music ? `
           <div class="text-zinc-400 mb-1 truncate">${escapeHtml(music.filename || 'track.mp3')}</div>
           <div class="text-[10px] text-zinc-500 font-mono mb-2">${music.analysis.bpm} BPM · ${music.analysis.beats.length} beats · ${music.analysis.duration.toFixed(1)}s · ${music.analysis.dynamic_range} LU range</div>
+          ${waveformHtml}
           <audio src="${assetUrl(state.currentRunId, music.path)}" controls class="w-full h-8 mb-2"></audio>
           ${timeline ? `
             <div class="bg-zinc-950 border border-zinc-800 rounded p-2 text-[11px] font-mono">
@@ -4130,7 +4357,7 @@ function renderPolish(st) {
       <!-- Title card -->
       <div class="bg-zinc-900/40 border border-zinc-800 rounded p-3 text-xs">
         <div class="flex items-baseline justify-between mb-2">
-          <div class="font-semibold text-zinc-200">🎬 Title card</div>
+          <div class="cr-serif" style="font-size: 17px; color: var(--bone);">Title card</div>
           ${titleCard ? `<button id="btn-remove-title" class="text-[11px] text-zinc-500 hover:text-red-400">✕ remove</button>` : ''}
         </div>
         ${titleCard ? `
@@ -4153,7 +4380,7 @@ function renderPolish(st) {
       <!-- VO card -->
       <div class="bg-zinc-900/40 border border-zinc-800 rounded p-3 text-xs">
         <div class="flex items-baseline justify-between mb-2">
-          <div class="font-semibold text-zinc-200">🎙 Narrator VO</div>
+          <div class="cr-serif" style="font-size: 17px; color: var(--bone);">Narrator VO</div>
           ${voMeta ? `<button id="btn-remove-vo" class="text-[11px] text-zinc-500 hover:text-red-400">✕ remove</button>` : ''}
         </div>
         <div id="vo-body"><div class="text-zinc-500">loading…</div></div>

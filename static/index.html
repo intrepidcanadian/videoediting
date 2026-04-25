@@ -591,30 +591,28 @@
 
   </main>
 
-  <!-- Director chat (floating right drawer) -->
-  <div id="director-drawer" class="hidden fixed top-16 bottom-0 right-0 w-96 bg-zinc-950 border-l border-zinc-800 z-30 flex flex-col shadow-[-8px_0_24px_rgba(0,0,0,0.5)]">
-    <div class="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
-      <span class="text-sm font-semibold">🎬 Director</span>
-      <span class="text-[11px] text-zinc-500">talk to Claude about this run</span>
+  <!-- Director chat (floating right drawer — Cutting Room editorial treatment) -->
+  <div id="director-drawer" class="hidden fixed bottom-0 right-0 w-96 z-30 flex flex-col" style="top: 60px; background: var(--ink); border-left: 1px solid var(--rule); box-shadow: -8px 0 24px rgba(0,0,0,0.5);">
+    <div class="flex items-center gap-3 px-4 py-3" style="border-bottom: 1px solid var(--rule);">
+      <span class="cr-serif" style="font-size: 18px;">The Director</span>
+      <span class="cr-eyebrow">talk to claude</span>
       <div class="flex-1"></div>
-      <button id="director-reset" class="text-[11px] text-zinc-500 hover:text-red-400">reset</button>
-      <button id="director-close" class="text-zinc-500 hover:text-white">✕</button>
+      <button id="director-reset" class="cr-mono" style="background: transparent; border: 0; color: var(--dim-2); cursor: pointer; font-size: 11px;" onmouseover="this.style.color='var(--oxide)'" onmouseout="this.style.color='var(--dim-2)'">reset</button>
+      <button id="director-close" class="cr-mono" style="background: transparent; border: 0; color: var(--dim); cursor: pointer; font-size: 14px; padding: 4px 8px;" onmouseover="this.style.color='var(--bone)'" onmouseout="this.style.color='var(--dim)'">✕</button>
     </div>
-    <div id="director-messages" class="flex-1 overflow-y-auto scroll-muted px-4 py-3 space-y-3 text-sm"></div>
-    <div class="border-t border-zinc-800 p-3">
-      <div class="flex gap-2">
-        <textarea id="director-input" rows="2"
-          class="flex-1 bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-sm resize-none focus:border-amber-500 focus:outline-none"
-          placeholder="e.g. 'make shot 3's coat burgundy', 'tighten shot 5', 'snap to beats', 'regen VO in a more dread tone'"></textarea>
-        <button id="director-send" class="px-3 py-2 rounded bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm whitespace-nowrap">Send</button>
+    <div id="director-messages" class="flex-1 overflow-y-auto scroll-muted px-4 py-3" style="display: flex; flex-direction: column; gap: 16px;"></div>
+    <div style="border-top: 1px solid var(--rule); padding: 12px;">
+      <textarea id="director-input" rows="2" placeholder="e.g. tighten shot 5, regen with more rain, snap to beats" style="margin-bottom: 8px;"></textarea>
+      <div class="flex items-center justify-between">
+        <span class="cr-eyebrow">Enter to send · Shift+Enter newline</span>
+        <button id="director-send" class="cr-btn-accent">Send</button>
       </div>
-      <div id="director-hint" class="text-[10px] text-zinc-600 mt-1">Enter to send · Shift+Enter for newline</div>
     </div>
   </div>
 
   <!-- Director toggle button (only visible in run view) -->
-  <button id="director-toggle" class="hidden fixed right-4 bottom-20 z-40 px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-black font-semibold shadow-lg text-sm">
-    🎬 Director
+  <button id="director-toggle" class="hidden fixed right-4 bottom-20 z-40" style="background: var(--lamp); color: var(--ink); font-family: var(--sans); font-weight: 600; padding: 10px 18px; border-radius: 999px; border: 0; box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(232,184,92,0.4); font-size: 13px; cursor: pointer; letter-spacing: 0.02em;">
+    The Director
   </button>
 
   <!-- Activity log (sticky bottom drawer) -->
