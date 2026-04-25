@@ -215,6 +215,11 @@ const api = {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ kind, text, context }),
                         }).then(_r),
+  ecomExtract: (url) => fetch('/api/ecommerce/extract', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ url }),
+                        }).then(_r),
   getRules: ()        => fetch('/api/rules').then(_r),
   saveRules: (data)   => fetch('/api/rules', {
                           method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -1931,6 +1936,91 @@ document.getElementById('new-form').addEventListener('submit', async (e) => {
     btn.textContent = 'Create run';
   }
 });
+
+// ─── E-commerce URL importer ─────────────────────────────────────────────
+
+document.getElementById('btn-ecom-extract').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-ecom-extract');
+  const status = document.getElementById('ecom-status');
+  const result = document.getElementById('ecom-result');
+  const url = document.getElementById('ecom-url').value.trim();
+  if (!url) { toast('Paste a product URL first'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Extracting…';
+  status.textContent = 'Fetching page + asking Claude to read it…';
+  result.classList.add('hidden');
+  result.innerHTML = '';
+
+  try {
+    const data = await api.ecomExtract(url);
+    if (!data.product_name) {
+      status.textContent = '';
+      result.classList.remove('hidden');
+      result.innerHTML = `<div class="text-amber-400">⚠ ${escapeHtml(data.extraction_notes || 'No product detected on this page.')}</div>`;
+      return;
+    }
+
+    // Populate form fields
+    const form = document.getElementById('new-form');
+    form.querySelector('[name=concept]').value = data.ad_concept || '';
+    form.querySelector('[name=style_intent]').value = data.style_intent || '';
+    form.querySelector('[name=title]').value = data.suggested_title || '';
+    if (data.suggested_shots) form.querySelector('[name=num_shots]').value = data.suggested_shots;
+    if (data.suggested_ratio) form.querySelector('[name=ratio]').value = data.suggested_ratio;
+
+    // Attach downloaded product images to the reference_images file input
+    // via a DataTransfer so they're submitted with the form.
+    const fileInput = form.querySelector('[name=reference_images]');
+    let attachedCount = 0;
+    if (fileInput && (data.images || []).length) {
+      const dt = new DataTransfer();
+      // Preserve any files the user already picked
+      for (const f of (fileInput.files || [])) dt.items.add(f);
+      for (const img of data.images) {
+        try {
+          const bin = atob(img.b64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          const ext = (img.filename.split('.').pop() || 'jpg').toLowerCase();
+          const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : ext === 'gif' ? 'image/gif' : 'image/jpeg';
+          const file = new File([bytes], img.filename, { type: mime });
+          dt.items.add(file);
+          attachedCount++;
+        } catch (err) { /* skip bad image */ }
+      }
+      fileInput.files = dt.files;
+    }
+
+    status.textContent = '';
+    result.classList.remove('hidden');
+    const sellingPoints = (data.key_selling_points || []).map(p =>
+      `<li class="ml-4 list-disc text-zinc-400">${escapeHtml(p)}</li>`
+    ).join('');
+    const imgPreviews = (data.images || []).map(img =>
+      `<img src="data:image/jpeg;base64,${img.b64}" class="w-16 h-16 object-cover rounded border border-zinc-700" alt="${escapeAttr(img.filename)}">`
+    ).join('');
+    result.innerHTML = `
+      <div class="flex items-baseline justify-between mb-2">
+        <div class="font-semibold text-emerald-300">✓ ${escapeHtml(data.product_name)}</div>
+        <div class="text-zinc-500 text-[11px]">${escapeHtml(data.brand || '')} ${data.price ? `· ${escapeHtml(data.price)}` : ''}</div>
+      </div>
+      <div class="text-zinc-500 text-[11px] mb-2">${escapeHtml(data.category || '')}</div>
+      ${sellingPoints ? `<ul class="mb-3">${sellingPoints}</ul>` : ''}
+      ${imgPreviews ? `<div class="flex gap-2 flex-wrap mb-2">${imgPreviews}</div>` : ''}
+      <div class="text-zinc-500 text-[11px]">Concept + ${attachedCount} reference image${attachedCount === 1 ? '' : 's'} loaded into the form below. Edit before creating the run.</div>
+    `;
+    toast(`Loaded: ${data.product_name}`);
+    form.querySelector('[name=concept]').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (err) {
+    status.textContent = '';
+    toast('Extract failed: ' + (err.message || err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Extract →';
+  }
+});
+
 
 // ─── Ideate panel ────────────────────────────────────────────────────────
 

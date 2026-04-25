@@ -101,6 +101,22 @@
       </details>
 
       <form id="new-form" class="space-y-5">
+        <details id="ecom-panel" class="bg-zinc-900/40 border border-emerald-900/30 rounded">
+          <summary class="cursor-pointer px-3 py-2 text-xs font-semibold text-emerald-300 hover:text-emerald-200 select-none">
+            🛒 Import from product URL <span class="text-zinc-500 font-normal normal-case ml-1">— turn an e-commerce page into an ad concept</span>
+          </summary>
+          <div class="p-3 border-t border-emerald-900/30 space-y-2">
+            <div class="flex gap-2">
+              <input id="ecom-url" type="url" placeholder="https://store.com/products/your-product"
+                class="flex-1 bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none">
+              <button type="button" id="btn-ecom-extract" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded text-sm whitespace-nowrap">Extract →</button>
+            </div>
+            <p class="text-[11px] text-zinc-500">Claude reads the page, drafts an ad concept, and pulls in product images as references. ~$0.02 per extract.</p>
+            <div id="ecom-status" class="text-[11px] text-zinc-400"></div>
+            <div id="ecom-result" class="hidden bg-zinc-950/60 border border-zinc-800 rounded p-3 text-xs"></div>
+          </div>
+        </details>
+
         <div>
           <div class="flex items-baseline justify-between mb-1.5">
             <label class="block text-xs font-semibold text-zinc-400">Concept</label>

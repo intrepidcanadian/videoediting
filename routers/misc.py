@@ -199,3 +199,32 @@ async def api_ideate_enhance(payload: dict):
         logger.error("_", "ideate", f"enhance failed: {e}")
         raise HTTPException(500, "text enhancement failed — check server logs")
     return {"text": rewritten}
+
+
+# ─── E-commerce URL importer ─────────────────────────────────────────────
+
+@router.post("/api/ecommerce/extract")
+async def api_ecommerce_extract(payload: dict):
+    """Fetch a product URL, ask Claude to extract product info + ad concept,
+    download hero images. Returns a packet the create-run form can use to
+    auto-populate concept / style_intent / title / shots / ratio + reference
+    images (returned as base64 so the browser can wrap them as File objects)."""
+    import ecommerce as ecommerce_mod
+
+    url = (payload.get("url") or "").strip()
+    if not url:
+        raise HTTPException(400, "url is required")
+    if len(url) > 2048:
+        raise HTTPException(400, "url is too long")
+
+    try:
+        result = await asyncio.to_thread(ecommerce_mod.extract_product, url)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except RuntimeError as e:
+        logger.error("_", "ecommerce", f"extract failed: {e}")
+        raise HTTPException(502, f"extraction failed: {e}")
+    except Exception as e:
+        logger.error("_", "ecommerce", f"extract failed: {e}")
+        raise HTTPException(500, "extraction failed — check server logs")
+    return result
