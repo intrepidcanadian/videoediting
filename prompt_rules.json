@@ -1,0 +1,186 @@
+{
+  "version": 2,
+  "rules": [
+    {
+      "id": "nb_strip_sdxl_tokens",
+      "name": "Strip SDXL-era tokens",
+      "target": "nano_banana_keyframe",
+      "kind": "strip_regex",
+      "pattern": "\\b(4k|8k|hdr|hd|masterpiece|highly detailed|ultra detailed|trending on artstation)\\b[,.]?\\s*",
+      "flags": "i",
+      "enabled": true,
+      "notes": "These tokens are SDXL / midjourney-era. Gemini 2.5 Flash Image ignores them at best, gets distracted at worst."
+    },
+    {
+      "id": "nb_normalize_lens",
+      "name": "Normalize lens notation",
+      "target": "nano_banana_keyframe",
+      "kind": "replace_regex",
+      "pattern": "\\b(\\d+)\\s*mm\\b",
+      "replacement": "\\1mm",
+      "flags": "",
+      "enabled": true,
+      "notes": "'50 mm' \u2192 '50mm'. Gemini reads lens notation more reliably when tight."
+    },
+    {
+      "id": "nb_normalize_aperture",
+      "name": "Normalize aperture",
+      "target": "nano_banana_keyframe",
+      "kind": "replace_regex",
+      "pattern": "\\bf\\s*[/]?\\s*(\\d+(\\.\\d+)?)\\b",
+      "replacement": "f/\\1",
+      "flags": "i",
+      "enabled": true,
+      "notes": "'f2.8' or 'f / 2.8' \u2192 'f/2.8'."
+    },
+    {
+      "id": "nb_add_photoreal_anchor",
+      "name": "Add photoreal anchor",
+      "target": "nano_banana_keyframe",
+      "kind": "append",
+      "value": " Photoreal film still. Considered color grade, subtle film grain. No text, no watermarks.",
+      "skip_if_present": "photoreal",
+      "enabled": true,
+      "notes": "Anchors Gemini toward cinematic photographic output when the prompt lacks it."
+    },
+    {
+      "id": "nbe_keep_everything_else",
+      "name": "Reinforce 'preserve everything else'",
+      "target": "nano_banana_edit",
+      "kind": "append",
+      "value": " Preserve composition, lighting, and character identity exactly; change only what the edit describes.",
+      "skip_if_present": "preserve",
+      "enabled": true,
+      "notes": "Edit mode drifts without this hint \u2014 Gemini tends to re-interpret the whole scene."
+    },
+    {
+      "id": "nbt_strip_stylization",
+      "name": "Strip over-stylization on titles",
+      "target": "nano_banana_title",
+      "kind": "strip_regex",
+      "pattern": "\\b(artstation|concept art|illustration|digital painting|anime|cartoon)\\b[,.]?\\s*",
+      "flags": "i",
+      "enabled": true,
+      "notes": "Title cards need legible, minimal design. Artistic-style tokens hurt text rendering."
+    },
+    {
+      "id": "nbt_add_legibility_hint",
+      "name": "Add legibility hint",
+      "target": "nano_banana_title",
+      "kind": "append",
+      "value": " Minimal composition, high legibility, tight kerning. Photoreal with subtle grain.",
+      "skip_if_present": "legibility",
+      "enabled": true,
+      "notes": "Gemini handles text better with explicit legibility hints."
+    },
+    {
+      "id": "sd_strip_transitions",
+      "name": "Strip transition language",
+      "target": "seedance_motion",
+      "kind": "strip_phrases",
+      "phrases": [
+        "fade to",
+        "fade in",
+        "fade out",
+        "cut to",
+        "dissolve",
+        "match cut",
+        "smash cut",
+        "jump cut"
+      ],
+      "enabled": true,
+      "notes": "Seedance renders one continuous clip. Transition language confuses it \u2014 those happen between clips in ffmpeg."
+    },
+    {
+      "id": "sd_strip_sound_cues",
+      "name": "Strip sound / music cues",
+      "target": "seedance_motion",
+      "kind": "strip_regex",
+      "pattern": "\\b(music swells?|drums? kick|bass drops?|silence falls?|audio cuts?|soundtrack)\\b[^.,]*[.,]?\\s*",
+      "flags": "i",
+      "enabled": true,
+      "notes": "Seedance is silent. Sound cues waste prompt tokens."
+    },
+    {
+      "id": "sd_strip_generation_tokens",
+      "name": "Strip generation-era tokens",
+      "target": "seedance_motion",
+      "kind": "strip_regex",
+      "pattern": "\\b(cinematic|4k|8k|hdr|masterpiece|high quality|photorealistic)\\b[,.]?\\s*",
+      "flags": "i",
+      "enabled": false,
+      "notes": "Off by default \u2014 'cinematic' sometimes helps Seedance. Enable if you notice the word isn't doing anything."
+    },
+    {
+      "id": "sd_clamp_length",
+      "name": "Clamp motion prompt length",
+      "target": "seedance_motion",
+      "kind": "clamp_length",
+      "max_chars": 400,
+      "enabled": true,
+      "notes": "Community guidance: Seedance performs best at <60 words + constraints (~360-400 chars). Longer prompts dilute motion signal."
+    },
+    {
+      "id": "sd_strip_negative_framing",
+      "name": "Strip negative framing (will add banlist separately)",
+      "target": "seedance_motion",
+      "kind": "strip_regex",
+      "pattern": "\\b(don'?t (show|include|have)|no (text|watermark|flare)s?|without (text|watermarks?|flares?|artifacts?))\\b[^.,]*[.,]?\\s*",
+      "flags": "i",
+      "enabled": true,
+      "notes": "Inline negatives hurt \u2014 Seedance (community-tested) prefers a dedicated constraints clause at the end. We strip inline negatives and the banlist rule adds a proper one."
+    },
+    {
+      "id": "sd_append_banlist",
+      "name": "Append constraints banlist (Seedance 5-part structure)",
+      "target": "seedance_motion",
+      "kind": "append",
+      "value": " Avoid visible text, watermarks, lens flares, malformed hands, or identity drift.",
+      "skip_if_present": "Avoid visible text",
+      "enabled": true,
+      "notes": "Per Seedance community guide: each shot benefits from an explicit 3-5 item banlist. This is the standard list that blocks the most common artifacts."
+    },
+    {
+      "id": "sd_normalize_camera_verbs",
+      "name": "Normalize camera motion phrasing",
+      "target": "seedance_motion",
+      "kind": "replace_regex",
+      "pattern": "\\b(?:push(?:es|ing|ed)?)\\b",
+      "replacement": "dolly",
+      "flags": "i",
+      "enabled": false,
+      "notes": "Off by default \u2014 some teams prefer 'push' over 'dolly'. Enable to standardize on Seedance's preferred vocabulary (dolly/track/crane/handheld/gimbal)."
+    },
+    {
+      "id": "nb_strip_generic_quality",
+      "name": "Strip generic quality adjectives",
+      "target": "nano_banana_keyframe",
+      "kind": "strip_regex",
+      "pattern": "\\b(beautiful|gorgeous|stunning|amazing|perfect|good|nice)\\b[,.]?\\s*",
+      "flags": "i",
+      "enabled": false,
+      "notes": "Off by default. Google's guide calls these 'vague good/beautiful' anti-patterns. Enable if you notice Claude leaning on them."
+    },
+    {
+      "id": "nb_strip_negative_framing",
+      "name": "Strip negative framing ('no X', 'without Y')",
+      "target": "nano_banana_keyframe",
+      "kind": "strip_regex",
+      "pattern": "\\b(no |without |don'?t (show|include))\\s*(text|watermark|logos?|people|cars?)\\b[^.,]*[.,]?\\s*",
+      "flags": "i",
+      "enabled": true,
+      "notes": "Gemini guide: use positive framing ('empty street' not 'no cars'). Our photoreal-anchor rule already appends 'No text, no watermarks' positively."
+    },
+    {
+      "id": "nb_quote_literal_text",
+      "name": "Wrap literal titles in quotes",
+      "target": "nano_banana_title",
+      "kind": "replace_regex",
+      "pattern": "(?<!['\\\"`])\\b([A-Z][A-Z0-9 ]{2,30}[A-Z0-9])\\b(?!['\\\"`])",
+      "replacement": "'\\1'",
+      "flags": "",
+      "enabled": true,
+      "notes": "Google guide: enclose rendered text in quotes for reliable typography. Matches all-caps words 4-32 chars (typical title length)."
+    }
+  ]
+}

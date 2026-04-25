@@ -1,0 +1,47 @@
+# ─── Secrets / env ─────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.pfx
+*credentials*
+*secrets*
+# anthropic / generic API keys
+.anthropic/
+.api_keys
+
+# ─── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# ─── Project artefacts ──────────────────────────────────────────
+outputs/
+library/
+playground/
+*.log
+
+# ─── OS / editor ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# ─── Claude / dev tooling ───────────────────────────────────────
+.claude/
